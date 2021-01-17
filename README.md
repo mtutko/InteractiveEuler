@@ -1,5 +1,7 @@
 # InteractiveEuler
 
+[![Documentation Status](https://readthedocs.org/projects/interactiveeuler/badge/?version=latest)](https://interactiveeuler.readthedocs.io/en/latest/?badge=latest)
+
 This software is for fun, interactive fluid solver and visualization.
 
 ## Usage
