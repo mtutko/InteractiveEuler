@@ -7,7 +7,7 @@ It is used to create a fun, interactive fluids solver.
 import sys
 
 import numpy as np
-from matplotlib import cm
+#from matplotlib import cm
 
 import pyqtgraph as pg
 from PyQt5 import QtGui, QtCore, QtWidgets
@@ -19,13 +19,13 @@ import fluid as fl
 MATSIZE = (100, 100)
 
 
-def get_matplotlib_lut(name):
-    # Get the colormap
-    colormap = cm.get_cmap(name)  # cm.get_cmap("CMRmap")
-    colormap._init()
-    lut = (colormap._lut * 255).view(np.ndarray)  # Convert matplotlib colormap from 0-1 to 0 -255 for Qt
-
-    return lut
+#def get_matplotlib_lut(name):
+#    # Get the colormap
+#    colormap = cm.get_cmap(name)  # cm.get_cmap("CMRmap")
+#    colormap._init()
+#    lut = (colormap._lut * 255).view(np.ndarray)  # Convert matplotlib colormap from 0-1 to 0 -255 for Qt
+#
+#    return lut
 
 
 def initialMatrix():
@@ -56,10 +56,10 @@ class solutionView(pg.PlotWidget):
         self.levels = [0, 2]
         self.img.setLevels(self.levels)
 
-        self.temperature_lut = get_matplotlib_lut("CMRmap")
-        self.pressure_lut = get_matplotlib_lut("nipy_spectral")
-        self.density_lut = get_matplotlib_lut("viridis")
-        self.img.setLookupTable(self.temperature_lut)
+        #self.temperature_lut = get_matplotlib_lut("CMRmap")
+        #self.pressure_lut = get_matplotlib_lut("nipy_spectral")
+        #self.density_lut = get_matplotlib_lut("viridis")
+        #self.img.setLookupTable(self.temperature_lut)
 
         self.vb = self.getViewBox()
         self.vb.setBackgroundColor((100, 10, 34))
@@ -70,19 +70,19 @@ class solutionView(pg.PlotWidget):
 
     def resetSolution(self):
         self.img.setImage(initialMatrix())
-        self.img.setLevels(self.levels)
+        #self.img.setLevels(self.levels)
         print("solution was reset!")
 
     def setPressureCmap(self):
-        self.img.setLookupTable(self.pressure_lut)
+        #self.img.setLookupTable(self.pressure_lut)
         print("Pressure cmap appears!")
 
     def setTemperatureCmap(self):
-        self.img.setLookupTable(self.temperature_lut)
+        #self.img.setLookupTable(self.temperature_lut)
         print("Temperature cmap appears!")
 
     def setDensityCmap(self):
-        self.img.setLookupTable(self.density_lut)
+        #self.img.setLookupTable(self.density_lut)
         print("Density cmap appears!")
 
     def save_figure(self):

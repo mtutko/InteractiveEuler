@@ -1,0 +1,7 @@
+to generate executable, make sure you are in the main directory of the file to execute
+
+e.g. pyinstaller -F --clean __main__.py
+
+the -F option (or --onefile) makes a single executable file
+
+note: matplotlib adds about 17 MB to executable size (or, 97 MB vs. 80 MB)
