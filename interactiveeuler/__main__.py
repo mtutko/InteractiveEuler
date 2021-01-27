@@ -18,6 +18,8 @@ import fluid as fl
 
 MATSIZE = (100, 100)
 
+# Enable antialiasing for prettier plots
+pg.setConfigOptions(antialias=True)
 
 def get_matplotlib_lut(name):
     # Get the colormap
