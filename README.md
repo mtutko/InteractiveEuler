@@ -1,6 +1,7 @@
 # InteractiveEuler
 
 [![Documentation Status](https://readthedocs.org/projects/interactiveeuler/badge/?version=latest)](https://interactiveeuler.readthedocs.io/en/latest/?badge=latest)
+[![Build Status](https://travis-ci.com/mtutko/InteractiveEuler.svg?branch=master)](https://travis-ci.com/mtutko/InteractiveEuler)
 
 This software is for fun, interactive fluid solver and visualization.
 
