@@ -6,7 +6,7 @@
 Welcome to InteractiveEuler's documentation!
 ============================================
 
-This is a sample edit.
+This is a sample edit. This is a second sample edit.
 
 .. toctree::
    :maxdepth: 2
