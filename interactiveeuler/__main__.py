@@ -16,10 +16,12 @@ import mymath
 import fluid as fl
 
 
-MATSIZE = (100, 100)
+N = 5
+MATSIZE = (N, N)
 
 # Enable antialiasing for prettier plots
 pg.setConfigOptions(antialias=True)
+
 
 def get_matplotlib_lut(name):
     # Get the colormap
@@ -30,8 +32,29 @@ def get_matplotlib_lut(name):
     return lut
 
 
-def initialMatrix():
+def getDomain():
+    dx = 1 / N
+    steparr = np.arange(dx/2, 1 + dx/2, step=dx)
+    X, Y = np.meshgrid(steparr, steparr)
+    return X, Y
+
+
+def getXDomain():
+    X, _ = getDomain()
+    return np.transpose(X)
+
+
+def getYDomain():
+    _, Y = getDomain()
+    return np.transpose(Y)
+
+
+def getZeroMatrix():
     return np.zeros(MATSIZE)
+
+
+def initialMatrix():
+    return getYDomain()
 
 
 class ResetSolutionButton(QtWidgets.QPushButton):
@@ -47,7 +70,9 @@ class solutionView(pg.PlotWidget):
     def __init__(self, parent=None):
         super(solutionView, self).__init__(parent)
 
-        self.img = pg.ImageItem(initialMatrix())
+        self.viewMat = initialMatrix()
+
+        self.img = pg.ImageItem(self.viewMat)
         self.kern = np.array([
             [0.0,  0.0, 0.25, 0.0, 0.0],
             [0.0,  0.25, 0.5, 0.25, 0.0],
@@ -55,13 +80,26 @@ class solutionView(pg.PlotWidget):
             [0.0,  0.25, 0.5, 0.25, 0.0],
             [0.0,  0.0, 0.25, 0.0, 0.0]])
         self.img.setDrawKernel(self.kern, mask=self.kern, center=(2, 2), mode='add')
-        self.levels = [0, 2]
+        self.levels = [0, 1]
         self.img.setLevels(self.levels)
 
         self.temperature_lut = get_matplotlib_lut("CMRmap")
         self.pressure_lut = get_matplotlib_lut("nipy_spectral")
         self.density_lut = get_matplotlib_lut("viridis")
-        self.img.setLookupTable(self.temperature_lut)
+        self.img.setLookupTable(self.temperature_lut)       # initial colormap
+
+        self.setTitle("Solution")
+        x_axis = pg.AxisItem('bottom')
+        y_axis = pg.AxisItem('left')
+        axis_items = {'left': y_axis, 'bottom': x_axis}
+        self.setAxisItems(axis_items)
+        self.setLabel(axis='left', text='Y')
+        self.setLabel(axis='bottom', text='X')
+        self.showGrid(x=True, y=True, alpha=1)
+
+        # will eventually remove these
+        #self.hideAxis('bottom')
+        #self.hideAxis('left')
 
         self.vb = self.getViewBox()
         self.vb.setBackgroundColor((100, 10, 34))
@@ -71,7 +109,8 @@ class solutionView(pg.PlotWidget):
         self.vb.setBorder(pen)
 
     def resetSolution(self):
-        self.img.setImage(initialMatrix())
+        self.viewMat = initialMatrix()
+        self.img.setImage(self.viewMat)
         self.img.setLevels(self.levels)
         print("solution was reset!")
 
@@ -90,6 +129,9 @@ class solutionView(pg.PlotWidget):
     def save_figure(self):
         exporter = pg.exporters.ImageExporter(self)
         exporter.export('testing!!!.png')
+
+    #def paintEvent(self, ev):
+    #    return super().paintEvent(ev)
 
 
 class solutionChooser(QtWidgets.QWidget):
@@ -172,6 +214,7 @@ class Settings(QtWidgets.QWidget):
         layout.addWidget(self.reset_btn)
         layout.addWidget(self.sc)
         layout.addWidget(self.ic)
+        layout.addStretch(1)
 
         self.setLayout(layout)
 

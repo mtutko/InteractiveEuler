@@ -20,5 +20,9 @@ def Transport(S0, U, dt):
 
 def addForce(S0, source, dt):
     """ Adds force (via "source") to field S0 and multiplies
-    by dt. Returns updated field S1. """
-    pass
+    by dt. Returns updated field S1.
+
+    S0 and source are both numpy matrices, dt is a float-like
+    variable"""
+
+    return S0 + dt*source

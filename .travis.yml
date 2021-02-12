@@ -1,7 +1,66 @@
-language: python
-python:
- - "3.8"
-install:
- - pip install -r requirements.txt
-script:
- - python -m unittest -v
+language: python            # this works for Linux but is an error on macOS or Windows
+
+jobs:
+  include:
+    - name: "Python 3.8.0 on Focal Linux"
+      dist: focal
+      python: 3.8           # this works for Linux but is ignored on macOS or Windows
+      install: 
+        - pip3 install --upgrade pip  # all three OSes agree about 'pip3'
+        - pip3 install -r requirements.txt
+        - pip3 install pyinstaller
+      script: python3 -m unittest -v || python -m unittest -v
+      before_deploy: pyinstaller --onefile --clean --paths interactiveeuler --name interactiveeuler_linux.exe interactiveeuler/__main__.py 
+      deploy:
+        provider: releases
+        api_key: $RELEASE_TOKEN
+        file: dist/interactiveeuler_linux.exe
+        skip_cleanup: true
+        draft: true
+        on:
+          tags: true
+        name: $TRAVIS_TAG (DRAFT)
+    - name: "Python 3.7.4 on macOS"
+      os: osx
+      osx_image: xcode11.2  # Python 3.7.4 running on macOS 10.14.4
+      language: shell       # 'language: python' is an error on Travis CI macOS
+      install: 
+        - pip3 install --upgrade pip  # all three OSes agree about 'pip3'
+        - pip3 install -r requirements.txt
+        - pip3 install pyinstaller
+      script: python3 -m unittest -v || python -m unittest -v
+      before_deploy: 
+        - pyinstaller --onefile --clean --windowed --paths interactiveeuler --name interactiveeuler_macos --osx-bundle-identifier UROP.OSS.fluid interactiveeuler/__main__.py 
+        - zip dist/interactiveeuler_macos.zip dist/interactiveeuler_macos.app -r    # zip up app
+      deploy:
+        provider: releases
+        api_key: $RELEASE_TOKEN
+        file_glob: true
+        file: dist/interactiveeuler_macos.zip
+        skip_cleanup: true
+        draft: true
+        on:
+          tags: true
+        name: $TRAVIS_TAG (DRAFT)
+    - name: "Python 3.8.0 on Windows"
+      os: windows           # Windows 10.0.17134 N/A Build 17134
+      language: shell       # 'language: python' is an error on Travis CI Windows
+      before_install:
+        - choco install python --version 3.8.0
+        - python -m pip install --upgrade pip
+      env: PATH=/c/Python38:/c/Python38/Scripts:$PATH
+      install: 
+        - pip3 install --upgrade pip  # all three OSes agree about 'pip3'
+        - pip3 install -r requirements.txt
+        - pip3 install pyinstaller
+      script: python3 -m unittest -v || python -m unittest -v
+      before_deploy: pyinstaller --onefile --clean --noconsole --paths interactiveeuler --name interactiveeuler_windows.exe interactiveeuler/__main__.py 
+      deploy:
+        provider: releases
+        api_key: $RELEASE_TOKEN
+        file: dist\interactiveeuler_windows.exe
+        skip_cleanup: true
+        draft: true
+        on:
+          tags: true
+        name: $TRAVIS_TAG (DRAFT)
