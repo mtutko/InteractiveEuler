@@ -17,6 +17,8 @@ class FluidTest(unittest.TestCase):
         self.assertEqual(18.0, 18.0)
 
     def test_addForce(self):
+        # test that the result equals S0 + dt*source
+        # test that source and S0 are the same size (and doesn't work if they are different sizes)
         self.assertEqual(18.0, 18.0)
 
 
