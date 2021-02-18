@@ -1,4 +1,5 @@
 import unittest
+import numpy as np
 from interactiveeuler.fluid import (LinInterp,
                                     TraceParticle,
                                     Transport,
@@ -8,18 +9,22 @@ from interactiveeuler.fluid import (LinInterp,
 class FluidTest(unittest.TestCase):
 
     def test_LinInterp(self):
-        self.assertEqual(18.0, 18.0)
+        pass
 
     def test_TraceParticle(self):
-        self.assertEqual(18.0, 18.0)
+        pass
 
     def test_Transport(self):
-        self.assertEqual(18.0, 18.0)
+        pass
 
     def test_addForce(self):
-        # test that the result equals S0 + dt*source
-        # test that source and S0 are the same size (and doesn't work if they are different sizes)
-        self.assertEqual(18.0, 18.0)
+        N = 12
+        S0 = 3*np.ones((N, N), dtype=float)
+        dt = 0.3
+        source = 5.6*np.ones((N, N), dtype=float)
+
+        np.testing.assert_allclose(addForce(S0, source, dt),
+                                   S0 + dt*source)
 
 
 if __name__ == '__main__':
