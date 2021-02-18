@@ -1,3 +1,17 @@
+def euler_step(f0, x0, t0, dt):
+    """Euler's method step to solve x' = f(x,t) with x(t0) = x0
+    and f(x0, t0) = f0.
+
+    USAGE:
+        x1 = euler_step(f0, x0, t0, dt)
+    """
+
+    x1 = x0 + dt*f0
+
+    return x1
+
+
+
 
 
 def LinInterp(S, X0):
@@ -19,10 +33,24 @@ def Transport(S0, U, dt):
 
 
 def addForce(S0, source, dt):
-    """ Adds force (via "source") to field S0 and multiplies
-    by dt. Returns updated field S1.
+    """Adds force (w1) during Stable Fluid algorithm.
 
-    S0 and source are both numpy matrices, dt is a float-like
-    variable"""
+    Adds force (via "source") to field S0 and multiplies by dt. Returns
+    updated field S1.
+
+    Parameters
+    ----------
+    S0 : matrix
+        The scalar field, 2d matrix
+    source : matrix
+        The source field, 2d matrix
+    dt : float
+        time step
+
+    Returns
+    -------
+    matrix
+        Result of force add calculation
+    """
 
     return S0 + dt*source
