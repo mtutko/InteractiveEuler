@@ -60,11 +60,40 @@ class FluidTest(unittest.TestCase):
             np.testing.assert_almost_equal(value4, xval**2)
 
     def test_TraceParticle(self):
-        pass
+        x0 = 1.3
+        y0 = 4.1
+        dt = 0.3
+
+        # zero velocity test
+        u1 = 0.0
+        v1 = 0.0
+        x1, y1 = fl.TraceParticle(x0, y0, u1, v1, dt)
+        np.testing.assert_almost_equal(x1, x0)
+        np.testing.assert_almost_equal(y1, y0)
+
+        # constant field test
+        u2 = 1.2
+        v2 = -4.1
+        x2, y2 = fl.TraceParticle(x0, y0, u2, v2, dt)
+        np.testing.assert_almost_equal(x2, x0 - dt*u2)
+        np.testing.assert_almost_equal(y2, y0 - dt*v2)
 
     def test_Transport(self):
-        pass
+        N = 5
+        grid = fl.Grid(N)
+        dt = 0.3
+        U = fl.Velocity(N)
 
+        # transport constant field with zero velocity
+        const = 3.1
+        S0 = const*np.ones((N, N), dtype=float)
+        S1 = fl.Transport(grid, S0, U, dt)
+        np.testing.assert_allclose(S1, const*np.ones((N, N), dtype=float))
+
+        # transport constant field with linear velocity
+        # add this test -- account for behavior at boundaries
+
+        
     def test_addForce(self):
         N = 12
         S0 = 3*np.ones((N, N), dtype=float)
