@@ -16,3 +16,4 @@ InteractiveEuler, or the :ref:`developer-guide` for information on how to contri
 
    userGuide
    developerGuide
+   modules
