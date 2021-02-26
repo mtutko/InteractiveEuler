@@ -6,17 +6,13 @@
 Welcome to InteractiveEuler's documentation!
 ============================================
 
-This is a sample edit. This is a second sample edit.
+InteractiveEuler is software for the interactive simulation and visualization of 
+solutions to the Navier Stokes equations. It will be of use to anyone interested
+in fluid dynamics! Please see the :ref:`user-guide` for information on how to use
+InteractiveEuler, or the :ref:`developer-guide` for information on how to contribute!
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :hidden:
 
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   userGuide
+   developerGuide

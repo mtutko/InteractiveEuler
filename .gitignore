@@ -4,5 +4,7 @@ env
 *.spec
 build/
 dist/
+doctrees/
+html/
 
 mytest/
