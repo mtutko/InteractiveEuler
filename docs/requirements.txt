@@ -1,3 +1,4 @@
 sphinx
 scipy
 numpy
+matplotlib
