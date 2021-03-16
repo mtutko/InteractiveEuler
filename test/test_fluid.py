@@ -16,15 +16,9 @@ class ClassesTest(unittest.TestCase):
     def test_Fluid(self):
         N = 200
         visc = 0.5
-        kS = 1.5
-        aS = 5.1
-        dt = 0.01
-        sol = fl.Fluid(N, visc, kS, aS, dt)
+        sol = fl.Fluid(N, visc)
 
         np.testing.assert_almost_equal(sol.visc, visc)
-        np.testing.assert_almost_equal(sol.kS, kS)
-        np.testing.assert_almost_equal(sol.aS, aS)
-        np.testing.assert_almost_equal(sol.dt, dt)
 
 
 class FluidTest(unittest.TestCase):
