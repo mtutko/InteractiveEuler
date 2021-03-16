@@ -5,6 +5,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+class StabilityError(Exception):
+    pass
+
+
 class Grid():
     """2D Grid for computational domain.
 
@@ -12,8 +16,8 @@ class Grid():
 
     Parameters
     ----------
-    N : int
-        Number of nodes along each axis.
+    N : int, optional
+        Number of nodes along each axis (the default value is 100).
 
     Attributes
     ----------
@@ -27,14 +31,16 @@ class Grid():
         2D array of points representing y-coordinate; generated from meshgrid.
 
     """
-    def __init__(self, N):
+    def __init__(self, N=100):
         self.x = np.linspace(0, 1, num=N)
         self.y = np.linspace(0, 1, num=N)
         self.X, self.Y = np.meshgrid(self.x, self.y, indexing='ij')
+        self.dx = 1 / (N-1)
 
 
 class Fluid():
-    """Fluid and Scalar solutions and parameters.
+    """Class containing Fluid solutions (Velocity and Pressure) and
+    parameters (viscosity).
 
     The fluid is assumed to only need 2 update functions and also is assumed
     to contain one scalar compound. Additionally, due to the use of the Stable
@@ -51,12 +57,6 @@ class Fluid():
         Number of nodes along each axis (the default value is 100).
     visc : float, optional
         Viscosity of the fluid (the default value is 1).
-    kS : float, optional
-        Diffusion rate of scalar (the default value is 1).
-    aS : float, optional
-        Dissipation rate of scalar (the default value is 1).
-    dt : float, optional
-        Time step for numerical solution (the default value is 0.01).
 
     Attributes
     ----------
@@ -64,40 +64,94 @@ class Fluid():
         Velocity solution at previous step.
     U1 : Velocity
         Velocity solution at current step.
-    S0 : ndarray(dtype=float, ndim=2)
-        Scalar solution at previous step.
-    S1 : ndarray(dtype=float, ndim=2)
-        Scalar solution at current step.
+    P0 : ndarray(dtype=float, ndim=2)
+        Pressure solution at previous step.
+    P1 : ndarray(dtype=float, ndim=2)
+        Pressure solution at current step.
     visc : float
         Viscosity of the fluid.
-    kS : float
-        Diffusion rate of scalar.
-    aS : float
-        Dissipation rate of scalar.
-    dt : float
-        Time step for numerical solution.
 
     """
-    def __init__(self, N=100, visc=1.0, kS=1.0, aS=1.0, dt=0.01):
+    def __init__(self, N=100, visc=1.0):
         # fields
         self.U0 = Velocity(N)
         self.U1 = Velocity(N)
-        self.S0 = np.zeros((N, N), dtype=float)
-        self.S1 = np.zeros((N, N), dtype=float)
+        self.P0 = np.zeros((N, N), dtype=float)
+        self.P1 = np.zeros((N, N), dtype=float)
 
         # physical parameters
         self.visc = visc
-        self.kS = kS
-        self.aS = aS
 
-        # numerical parameters
+
+class Simulation:
+    """Class containing parameters relevant to the simulation.
+
+    Parameters
+    ----------
+    dt : float, optional
+        Time step for numerical solution (the default value is 0.01).
+    Tfinal : dt, optional
+        Final simulation time (the default value is 1.0)
+    Attributes
+    ----------
+    dt : float
+        Time step for numerical solution.
+    Tfinal : float
+        Final simulation time.
+
+    """
+    def __init__(self, dt=0.01, Tfinal=1.0):
         self.dt = dt
+        self.Tfinal = Tfinal
 
 
 class Velocity():
+    """Class for Velocity solution.
+
+    Parameters
+    ----------
+    N : int
+        Number of nodes along each axis.
+
+    Attributes
+    ----------
+    U : ndarray(dtype=float, ndim=2)
+        Horizontal velocity field.
+    V : ndarray(dtype=float, ndim=2)
+        Vertical velocity field.
+
+    """
     def __init__(self, N):
         self.U = np.zeros((N, N), dtype=float)
         self.V = np.zeros((N, N), dtype=float)
+
+
+class Scalar():
+    """Class for Scalar solution.
+
+    Parameters
+    ----------
+    N : int, optional
+        Number of nodes along each axis (default value is 100).
+    k : float, optional
+        Diffusion coefficient for this scalar (default value is 1).
+    name: string, optional
+        Name of scalar variable (default value is "scalar").
+
+    Attributes
+    ----------
+    U : ndarray(dtype=float, ndim=2)
+        Scalar solution defined on grid.
+    k : float
+        Diffusion coefficient for this field.
+    name: string
+        Name of scalar variable.
+
+    """
+    def __init__(self, N=100, k=1, name="scalar"):
+        self.U = np.zeros((N, N), dtype=float)
+        self.k = k
+        self.name = name
 
 
 def euler_step(f0, x0, dt):
@@ -177,13 +231,163 @@ def addForce(S0, source, dt):
     return S0 + dt*source
 
 
+def Diffuse(U0, diff_coef, dt, dx,
+            utop=0, ubottom=0, uleft=0, uright=0):
+    """Updates the field A0 subject to the PDE
+
+    A_t = diff_coef nabla^2 A
+
+    Uses a straightforward finite difference approximation,
+    where the second derivative is approximated by a center-
+    difference scheme. This scheme is explicit (nice) but
+    also only numerically stable when dt < dx^2/(4*diff_coef)
+    (not nice). This scheme should be replaced with Crank-
+    Nicholson. If stability criterion is violated, a StabilityError
+    exception is raised.
+
+    Note
+    ----
+    1. Right now this is done element-wise, which is very slow
+    in python. Better to vectorize.
+
+    2. This code expects constant dirichlet boundary conditions.
+
+    Parameters
+    ----------
+    A0 : ndarray(dtype=float, ndim=2)
+        The scalar field, 2d matrix
+    diff_coef : float
+        Diffusion coefficient
+    dt : float
+        Discretized time step
+    dx : float
+        Discretized space step
+    utop : float, optional
+        Top boundary condition (the default value is zero).
+    ubottom : float, optional
+        Bottom boundary condition (the default value is zero).
+    uleft : float, optional
+        Left boundary condition (the default value is zero).
+    uright : float, optional
+        Right boundary condition (the default value is zero).
+
+    Returns
+    -------
+    U1 : ndarray(dtype=float, ndim=2)
+        Updated scalar solution.
+    """
+    U1 = np.zeros_like(U0)
+    N, M = U0.shape
+
+    # check for stability
+    if (dt > dx**2/(4*diff_coef)):
+        raise StabilityError("dt > dx^2/(4*diff_coef! Simulation is unstable."
+                             "Select smaller time step.")
+
+    # diffuse interior
+    alpha = diff_coef*dt/dx**2
+    for ti in range(1, N-1):
+        for tj in range(1, M-1):
+            U1[ti, tj] = U0[ti, tj] + alpha*(U0[ti + 1, tj] +
+                                             U0[ti - 1, tj] +
+                                             U0[ti, tj + 1] +
+                                             U0[ti, tj - 1] -
+                                             4*U0[ti, tj]
+                                             )
+
+    # apply boundary conditions
+    U1[N-1, :] = ubottom
+    U1[0, :] = utop
+    U1[:, 0] = uleft
+    U1[:, M-1] = uright
+
+    U1[N-1, M-1] = 0.5*(ubottom + uright)  # bottomright
+    U1[0, M-1] = 0.5*(utop + uright)  # topright
+    U1[N-1, 0] = 0.5*(ubottom + uleft)  # bottomleft
+    U1[0, 0] = 0.5*(utop + uleft)  # topleft
+
+    return U1
+
+
+def VStep(grid, fluid, F, dt):
+    # add force to all values of velocity
+    fluid.U1 = addForce(fluid.U0, F, dt)
+
+    # transport all values of velocity
+    fluid.U1 = Transport(grid, fluid.U1, fluid.U0, dt)
+
+    # diffuse all values of velocity
+
+    # project all values of velocity
+
+    pass
+
+
+def Sstep(grid, sim, scalar, fluid, source, dt):
+    # add force to all values of scalar
+    scalar.S1 = addForce(scalar.S0, source, dt)
+
+    # transport all values of scalar
+    scalar.U1 = Transport(grid, scalar.S1, fluid.U0, dt)
+
+    # diffuse all values of scalar
+    scalar.U = Diffuse(scalar.U, scalar.k, sim.dt, grid.dx)
+
+    # dissipate all values of scalar
+
+    pass
+
+
+# ----------------------------------------------------------------------
 # These functions are for development only. They should be commented out
 # when code goes to production
+# ----------------------------------------------------------------------
 def plot_fluid(grid, solution):
-    X, Y = np.meshgrid(grid.x, grid.y)
-
-    plt.contourf(X, Y, solution.S1, cmap='RdGy')
+    plt.contourf(grid.X, grid.Y, solution.P1, cmap='RdGy')
     plt.colorbar()
-    plt.quiver(X, Y, solution.U1.U, solution.U1.V)
-    plt.title("Scalar")
+    plt.quiver(grid.X, grid.Y, solution.U1.U, solution.U1.V)
+    plt.title("Pressure")
     plt.show()
+
+
+def plot_scalar(grid, solution, time):
+    # plt.contourf(grid.X, grid.Y, solution.U)
+    plt.imshow(solution.U)
+    plt.colorbar()
+    plt.title(f"{solution.name}, t={time}")
+    plt.show()
+
+
+import matplotlib.animation as animation
+from matplotlib.animation import FuncAnimation
+
+
+def animate_it():
+    N = 50
+    dt = 0.0001
+    diff_coef = 1.0
+    Tfinal = 1.0
+    scalar_name = "Temperature"
+
+    grid = Grid(N)
+    sim = Simulation(dt, Tfinal)
+
+    # boundary conditions
+    utop = 0
+    ubottom = 0
+    uleft = 0
+    uright = 1
+
+    temp = Scalar(N, diff_coef, scalar_name)
+
+    t = 0
+    while t < sim.Tfinal:
+        temp.U = Diffuse(temp.U, temp.k, sim.dt, grid.dx,
+                         utop=utop, ubottom=ubottom,
+                         uleft=uleft, uright=uright)
+        t += sim.dt
+        print(f"Simulation time t={t} / {sim.Tfinal}", end="\r")
+
+    plot_scalar(grid, temp, t)
+
+    print("Simulation done")

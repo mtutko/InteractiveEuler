@@ -93,7 +93,6 @@ class FluidTest(unittest.TestCase):
         # transport constant field with linear velocity
         # add this test -- account for behavior at boundaries
 
-        
     def test_addForce(self):
         N = 12
         S0 = 3*np.ones((N, N), dtype=float)
